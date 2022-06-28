@@ -1,0 +1,158 @@
+﻿@using OgrenciOto.Models.Entity
+
+@{
+    ViewData["Title"] = "Index";
+}
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<h1>Ögrenci Otomasyon Sistemi</h1>
+<div id="listStudent">
+</div>
+<div id="AddDiv" style="display: none;">
+    <div class="mb-3 row" >
+    <label for="txtStudentName" class="col-sm-2 col-form-label">Ad</label>
+    <div class="col-sm-10">
+        <input type="text" class="form-control" id="txtStudentName"/>
+    </div>
+    </div>
+    <br />
+    <input type="text" id="txtStudentSurName"/>
+    <br />
+    <input type="text" id="txtStudentAge"/>
+    <br />
+    <input type="submit" id="AddStudent"/>
+</div>
+<div id="DeleteDiv" style="display:none;">
+    <select id="selectStudent" name="Student">
+        @foreach (Student id in ViewBag.Id)
+        {
+            <option id="secIdForDelete" value="@id.StudentId">@id.StudentName @id.StudentSurName</option>
+        }
+    </select>
+    <input type="submit" id="deleteStudent"/>
+</div>
+<div id="UpdDiv" style="display: none;">
+     <input type="hidden" id="txtUpdStudentId"/>
+    <div class="mb-3 row" >
+    <label for="txtStudentName" class="col-sm-2 col-form-label">Ad</label>
+    <div class="col-sm-10">
+        <input type="text" class="form-control" id="txtUpdStudentName"/>
+    </div>
+    </div>
+    <br />
+    <div class="mb-3 row">
+    <label for="txtStudentName" class="col-sm-2 col-form-label">Soyad</label>
+    <div class="col-sm-10">
+    <input type="text" id="txtUpdStudentSurName"/>
+    </div>
+    </div>
+    <br />
+    <div class="mb-3 row" >
+    <label for="txtStudentName" class="col-sm-2 col-form-label">Yaş</label>
+    <div class="col-sm-10">
+    <input type="text" id="txtUpdStudentAge"/>
+    </div>
+    </div>
+    <br />
+    <input type="submit" id="UpdStudent"/>
+</div>
+<button id="btnAdd">Ekle</button>
+<button id="btnDelete">Sil</button>
+<script>
+    
+    //Ekleme Divi açılır.
+    $("#btnAdd").click(function(){
+        $("#AddDiv").css("display","block");
+    }
+    )
+    //Ekleme İşlemi Yapılır.
+   $("#AddStudent").click(function send(){
+        let student={
+            StudentName:$("#txtStudentName").val(),
+            StudentSurName:$("#txtStudentSurName").val(),
+            Age:$("#txtStudentAge").val()
+        };
+        $.ajax({
+            dataType:"json",
+            type:"post",
+            url:"/Student/AddStudent",
+            data: student,
+            success:function(func){
+                let s=jQuery.parseJSON(func);
+                alert("Öğrenci Ekeleme İşlemi Gerçekleşti");
+            }
+        })      
+    })
+    //Silme Divi Açılır.
+    $("#btnDelete").click(function()
+    {
+        $("#DeleteDiv").css("display","block");
+    })
+    //Silme işlemi yapılır.
+    $("#deleteStudent").click(function(){
+        var id=$("#selectStudent").val();
+        $.ajax({
+            type:"get",
+            url:"/Student/DeleteStudent?id="+id,
+            success:function(result){
+                alert("Kayıt Silindi");
+            }
+        })
+    })
+    //Listeleme işlemi sayfa açıldıktan itibaren yapılır.
+    $(document).ready(function(){
+            $.ajax({
+                type:"get",
+                contentType:"application/json",
+                dataType:"json",
+                url:"/Student/GetAllStudentList",
+                success:function(data){
+                    let w=jQuery.parseJSON(data);
+                    console.log(w);
+                  document.getElementById("listStudent").innerHTML="";   
+
+                 var tableHTML="<table class=\"table table-success table-striped\">"+
+        "<thead>"+
+            "<tr>"+
+                "<th scope=\"col\">Ad</th>"+
+                "<th scope=\"col\">Soyad</th>"+
+                "<th scope=\"col\">Yaş</th>"+
+                "<th scope=\"col\">İşlem</th>"+
+             "</tr>"+
+             "</thead><tbody>"; 
+                   $.each(w, function(key,value){                    
+                    tableHTML+=" <tr>"
+                     +"<td>"+value.StudentName+"</td>"
+                     +"<td>"+value.StudentSurName+"</td>"
+                     +"<td>"+value.Age+"</td>"
+                     +"<td><input type=\"button\" onclick=\"updSend("+value.StudentId+")\" id=\"btnUpd\" class=\"btn btn-warning\" value=\"Düzenle\" \"/></td></tr>";
+                })
+                  document.getElementById("listStudent").innerHTML=tableHTML;   
+                  
+                tableHTML+="</tbody></table>";  
+                }
+                
+            })
+        });
+        
+    
+    // $("#btnUpd").click(function(){
+        
+    //}
+    function updSend(x){
+        $("#UpdDiv").css("display","block");
+        $.ajax({
+            type:"get",
+            url:"/Student/StudentUpd?id="+x,
+            success:function(data){
+                var w=jQuery.parseJSON(data);
+                $("#txtUpdStudentId").val(w.StudentId);
+                $("#txtUpdStudentName").val(w.StudentName);
+                $("#txtUpdStudentSurName").val(w.StudentSurName);
+                $("#txtUpdStudentAge").val(w.Age);
+                
+            }
+        })
+    }
+
+    
+</script>
